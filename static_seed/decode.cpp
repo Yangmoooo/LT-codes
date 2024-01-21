@@ -6,6 +6,7 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
+    // 传入参数：待解码文件名、block 大小、原始文件大小
     char* file_name = argv[1];
     u32 block_size = atoi(argv[2]);
     u32 raw_data_size = atoi(argv[3]);

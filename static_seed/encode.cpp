@@ -6,9 +6,10 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    //! packet = block + seed
-    //! packet 就是 droplet，可以无限生成
-    //! block_cnt 则是对齐后文件按照 block_size 划分的块数
+    // packet 即 droplet
+    // packet = block + seed
+
+    // 传入参数：待编码文件名、block 大小、packet 数量
     char* file_name = argv[1];
     u32 block_size = atoi(argv[2]);
     u32 packet_cnt = atoi(argv[3]);

@@ -47,7 +47,7 @@ set<u32> gen_indexes(u32 seed, u32 degree, u32 block_cnt) {
 }
 
 pair<u8*, u32> encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
-    //! 写缓冲区大小为 packet_cnt 个 (block 大小 + seed 大小)
+    // 写缓冲区大小为 packet_cnt 个 (block 大小 + seed 大小)
     u8* write_data_ptr = (u8*)malloc(sizeof(u8) * ((block_size + 4) * packet_cnt));
     if (!write_data_ptr) {
         cerr << "Malloc write buffer error!" << endl;
@@ -56,7 +56,7 @@ pair<u8*, u32> encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32
     memset(write_data_ptr, 0, (block_size + 4) * packet_cnt);
 
     for (u32 i = 0; i < packet_cnt; i++) {
-        //! mt19937 算法生成的随机数质量足够好，不太需要将 seed 分散
+        // mt19937 算法生成的随机数质量足够好，不太需要将 seed 分散
         u32 seed = i;
         u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
         set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
@@ -96,6 +96,7 @@ pair<u8*, u32> read_encode_file(FILE* fp) {
 
 pair<u8*, u32> decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_data_size) {
     u32 packet_cnt = encode_data_size / (block_size + 4);
+    // block_cnt 是原始文件对齐后按照 block_size 划分的块数
     u32 block_cnt = raw_data_size / block_size;
     if (raw_data_size % block_size != 0)
         block_cnt++;
