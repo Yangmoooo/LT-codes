@@ -1,7 +1,7 @@
 #include "fountain.h"
 
 // 读取原始文件
-pair<u8*, u32> read_raw_file(FILE* fp, u32 block_size) {
+Data read_raw_file(FILE* fp, u32 block_size) {
     fseek(fp, 0, SEEK_END);
     // 读入的文件内容字节长度
     u32 raw_data_size = ftell(fp);
@@ -14,19 +14,23 @@ pair<u8*, u32> read_raw_file(FILE* fp, u32 block_size) {
 
     u8* real_data_ptr = (u8*)malloc(sizeof(u8) * (real_data_size));
     if (!real_data_ptr) {
-        cerr << "Malloc read buffer error!" << endl;
+        printf("Malloc read buffer error!\n");
         fclose(fp);
         exit(-1);
     }
     memset(real_data_ptr, 0, raw_data_size);
     fread(real_data_ptr, 1, raw_data_size, fp);
 
-    return make_pair(real_data_ptr, real_data_size);
+    Data real_data;
+    real_data.ptr = real_data_ptr;
+    real_data.size = real_data_size;
+
+    return real_data;
 }
 
 u32 gen_degree_ideal_soliton(u32 seed, u32 block_cnt) {
-    mt19937 gen_rand(seed);
-    uniform_real_distribution<> uniform(0.0, 1.0);
+    std::mt19937 gen_rand(seed);
+    std::uniform_real_distribution<> uniform(0.0, 1.0);
     double rand_num = uniform(gen_rand);
     u32 degree = 1;
     double prob = 1.0 / block_cnt;
@@ -37,20 +41,20 @@ u32 gen_degree_ideal_soliton(u32 seed, u32 block_cnt) {
     return degree;
 }
 
-set<u32> gen_indexes(u32 seed, u32 degree, u32 block_cnt) {
-    mt19937 gen_rand(seed);
-    uniform_int_distribution<> uniform(0, block_cnt - 1);
-    set<u32> indexes;
+std::set<u32> gen_indexes(u32 seed, u32 degree, u32 block_cnt) {
+    std::mt19937 gen_rand(seed);
+    std::uniform_int_distribution<> uniform(0, block_cnt - 1);
+    std::set<u32> indexes;
     while (indexes.size() < degree)
         indexes.insert(uniform(gen_rand));
     return indexes;
 }
 
-pair<u8*, u32> encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
-    // 写缓冲区大小为 packet_cnt 个 (block 大小 + seed 大小)
+Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
+    // 写缓冲区大小为 (编码块大小 + 种子大小) * 编码包数量
     u8* write_data_ptr = (u8*)malloc(sizeof(u8) * ((block_size + 4) * packet_cnt));
     if (!write_data_ptr) {
-        cerr << "Malloc write buffer error!" << endl;
+        printf("Malloc write buffer error!\n");
         exit(-1);
     }
     memset(write_data_ptr, 0, (block_size + 4) * packet_cnt);
@@ -59,7 +63,7 @@ pair<u8*, u32> encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32
         // mt19937 算法生成的随机数质量足够好，不太需要将 seed 分散
         u32 seed = i;
         u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
-        set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
+        std::set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
 
         u8* block_ptr = (u8*)malloc(sizeof(u8) * block_size);
         memset(block_ptr, 0, block_size);
@@ -73,28 +77,36 @@ pair<u8*, u32> encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32
         free(block_ptr);
     }
 
-    return make_pair(write_data_ptr, (block_size + 4) * packet_cnt);
+    Data write_data;
+    write_data.ptr = write_data_ptr;
+    write_data.size = (block_size + 4) * packet_cnt;
+
+    return write_data;
 }
 
 // 读取编码文件
-pair<u8*, u32> read_encode_file(FILE* fp) {
+Data read_encode_file(FILE* fp) {
     fseek(fp, 0, SEEK_END);
     u32 encode_data_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
     u8* encode_data_ptr = (u8*)malloc(sizeof(u8) * encode_data_size);
     if (!encode_data_ptr) {
-        cerr << "Malloc encode buffer error!" << endl;
+        printf("Malloc encode buffer error!\n");
         fclose(fp);
         exit(-1);
     }
     memset(encode_data_ptr, 0, encode_data_size);
     fread(encode_data_ptr, 1, encode_data_size, fp);
 
-    return make_pair(encode_data_ptr, encode_data_size);
+    Data encode_data;
+    encode_data.ptr = encode_data_ptr;
+    encode_data.size = encode_data_size;
+
+    return encode_data;
 }
 
-pair<u8*, u32> decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_data_size) {
+Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_data_size) {
     u32 packet_cnt = encode_data_size / (block_size + 4);
     // block_cnt 是原始文件对齐后按照 block_size 划分的块数
     u32 block_cnt = raw_data_size / block_size;
@@ -102,19 +114,19 @@ pair<u8*, u32> decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size,
         block_cnt++;
     u8* decode_data_ptr = (u8*)malloc(sizeof(u8) * (block_size * block_cnt));
     if (!decode_data_ptr) {
-        cerr << "Malloc decode buffer error!" << endl;
+        printf("Malloc decode buffer error!\n");
         exit(-1);
     }
     memset(decode_data_ptr, 0, block_size * block_cnt);
 
-    vector<bool> is_decoded(block_cnt, false);
+    std::vector<bool> is_decoded(block_cnt, false);
 
     // 先得到度为 1 的原始数据块
     for (u32 i = 0; i < packet_cnt; i++) {
         u32 seed = *(u32*)(encode_data_ptr + i * (block_size + 4) + block_size);
         u32 degree = gen_degree_ideal_soliton(seed, block_cnt);
         if (degree == 1) {
-            set<u32> indexes = gen_indexes(seed, degree, block_cnt);
+            std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
             for (auto index : indexes) {
                 memcpy(decode_data_ptr + index * block_size, encode_data_ptr + i * (block_size + 4), block_size);
                 is_decoded[index] = true;
@@ -132,7 +144,7 @@ pair<u8*, u32> decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size,
             if (degree == 1)
                 continue;
 
-            set<u32> indexes = gen_indexes(seed, degree, block_cnt);
+            std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
             for (auto index : indexes) {
                 if (is_decoded[index])
                     degree--;
@@ -157,5 +169,9 @@ pair<u8*, u32> decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size,
         }
     }
 
-    return make_pair(decode_data_ptr, block_size * block_cnt);
+    Data decode_data;
+    decode_data.ptr = decode_data_ptr;
+    decode_data.size = block_size * block_cnt;
+
+    return decode_data;
 }

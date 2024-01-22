@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        cerr << "Parameters error!" << endl;
+        printf("Parameters error!\n");
         exit(-1);
     }
 
@@ -16,22 +16,21 @@ int main(int argc, char* argv[]) {
 
     FILE* file_open_ptr = fopen(file_name, "rb");
     if (!file_open_ptr) {
-        cerr << "Open read file error!" << endl;
+        printf("Open read file error!\n");
         exit(-1);
     }
-
-    pair<u8*, u32> real_data = read_raw_file(file_open_ptr, block_size);
-    u8* real_data_ptr = real_data.first;
-    u32 real_data_size = real_data.second;
+    Data real_data = read_raw_file(file_open_ptr, block_size);
     fclose(file_open_ptr);
+    u8* real_data_ptr = real_data.ptr;
+    u32 real_data_size = real_data.size;
 
-    pair<u8*, u32> write_data = encode(real_data_ptr, real_data_size, block_size, packet_cnt);
-    u8* write_data_ptr = write_data.first;
-    u32 write_data_size = write_data.second;
+    Data write_data = encode(real_data_ptr, real_data_size, block_size, packet_cnt);
+    u8* write_data_ptr = write_data.ptr;
+    u32 write_data_size = write_data.size;
 
     FILE* file_write_ptr = fopen("encode.txt", "wb");
     if (!file_write_ptr) {
-        cerr << "Open write file error!" << endl;
+        printf("Open write file error!\n");
         exit(-1);
     }
     fwrite(write_data_ptr, 1, write_data_size, file_write_ptr);

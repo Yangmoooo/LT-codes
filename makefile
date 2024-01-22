@@ -1,8 +1,8 @@
 CC = g++
 CFLAGS =
 
-ENCODE_SRC = %_seed/encode.cpp %_seed/fountain.cpp
-DECODE_SRC = %_seed/decode.cpp %_seed/fountain.cpp
+ENCODE_SRC = %_seed/encode.c %_seed/fountain.cpp
+DECODE_SRC = %_seed/decode.c %_seed/fountain.cpp
 
 %_encoder.exe: $(ENCODE_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
