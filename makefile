@@ -1,8 +1,10 @@
 CC = g++
-CFLAGS =
+CFLAGS = -O2
 
-ENCODE_SRC = %_seed/encode.c %_seed/fountain.cpp
-DECODE_SRC = %_seed/decode.c %_seed/fountain.cpp
+ENCODE_SRC = encode.c fountain_%.cpp
+DECODE_SRC = decode.c fountain_%.cpp
+STATIC_EXE = static_encoder.exe static_decoder.exe
+DYNAMIC_EXE = dynamic_encoder.exe dynamic_decoder.exe
 
 %_encoder.exe: $(ENCODE_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
@@ -10,9 +12,9 @@ DECODE_SRC = %_seed/decode.c %_seed/fountain.cpp
 %_decoder.exe: $(DECODE_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
 
-static: static_encoder.exe static_decoder.exe
+static: $(STATIC_EXE)
 
-dynamic: dynamic_encoder.exe dynamic_decoder.exe
+dynamic: $(DYNAMIC_EXE)
 
 clean:
-	del *.exe encode.txt decode.*
+	del *.exe 2>nul & del /Q .\output\* 2>nul
