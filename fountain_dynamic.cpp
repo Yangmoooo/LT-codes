@@ -1,6 +1,6 @@
 #include "fountain.h"
 
-// 种子大小可能为 1 字节、2 字节、4 字节
+// 种子长度可以为 1 字节、2 字节、4 字节
 #define MAX_U8 255
 #define MAX_U16 65535
 
@@ -28,24 +28,21 @@ std::set<u32> gen_indexes(T seed, u32 degree, u32 block_cnt) {
     return indexes;
 }
 
-//TODO: 修改该函数，用于简化 encode 函数
 template <typename T>
-void process_packet(u8* write_data_tmp_ptr, u8* real_data_ptr, u32 block_size, 
-                    u32 packet_size, T seed, u32 real_data_size, 
-                    u32 packet_index) {
+void gen_packet(T seed, u32 packet_pos, u32 packet_size, u8* packet_ptr, 
+                u8* real_data_ptr, u32 real_data_size, u32 block_size) {
     u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
     std::set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
 
     u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-    for (auto index : indexes) {
+    for (auto index : indexes)
         for (u32 j = 0; j < block_size; j++)
             block_ptr[j] ^= real_data_ptr[index * block_size + j];
-    }
 
     u8 seed_size = sizeof(T);
-    memcpy(write_data_tmp_ptr + packet_index * packet_size, block_ptr, block_size);
-    memcpy(write_data_tmp_ptr + packet_index * packet_size + block_size, &seed_size, sizeof(u8));
-    memcpy(write_data_tmp_ptr + packet_index * packet_size + block_size + sizeof(u8), &seed, seed_size);
+    memcpy(packet_ptr + packet_pos * packet_size, block_ptr, block_size);
+    memcpy(packet_ptr + packet_pos * packet_size + block_size, &seed_size, sizeof(u8));
+    memcpy(packet_ptr + packet_pos * packet_size + block_size + sizeof(u8), &seed, seed_size);
     free(block_ptr);
 }
 
@@ -62,9 +59,9 @@ Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cn
         packet_u32_cnt = packet_cnt - packet_u8_cnt - packet_u16_cnt;
     }
 
-    u32 write_data_size = (block_size + 1 + 1) * packet_u8_cnt + 
-                          (block_size + 1 + 2) * packet_u16_cnt + 
-                          (block_size + 1 + 4) * packet_u32_cnt;
+    u32 write_data_size = (block_size + sizeof(u8) + sizeof(u8)) * packet_u8_cnt + 
+                          (block_size + sizeof(u8) + sizeof(u16)) * packet_u16_cnt + 
+                          (block_size + sizeof(u8) + sizeof(u32)) * packet_u32_cnt;
     u8* write_data_ptr = (u8*)calloc(write_data_size, sizeof(u8));
     if (!write_data_ptr) {
         printf("Calloc write buffer error!\n");
@@ -72,63 +69,24 @@ Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cn
     }
 
     u8* write_data_tmp_ptr = write_data_ptr;
-    u8 seed_size = 1;
-    u32 packet_size = block_size + sizeof(u8) + seed_size;
     for (u32 i = 0; i < packet_u8_cnt; i++) {
         u8 seed = i;
-        u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
-        std::set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
-
-        u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-        for (auto index : indexes) {
-            for (u32 j = 0; j < block_size; j++)
-                block_ptr[j] ^= real_data_ptr[index * block_size + j];
-        }
-
-        memcpy(write_data_tmp_ptr + i * packet_size, block_ptr, block_size);
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size, &seed_size, sizeof(u8));
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size + sizeof(u8), &seed, seed_size);
-        free(block_ptr);
+        gen_packet(seed, i, block_size + sizeof(u8) + sizeof(u8), write_data_tmp_ptr,
+                    real_data_ptr, real_data_size, block_size);
     }
 
     write_data_tmp_ptr += packet_u8_cnt * (block_size + sizeof(u8) + 1);
-    seed_size = 2;
-    packet_size = block_size + sizeof(u8) + seed_size;
     for (u32 i = 0; i < packet_u16_cnt; i++) {
         u16 seed = i + packet_u8_cnt;
-        u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
-        std::set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
-
-        u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-        for (auto index : indexes) {
-            for (u32 j = 0; j < block_size; j++)
-                block_ptr[j] ^= real_data_ptr[index * block_size + j];
-        }
-
-        memcpy(write_data_tmp_ptr + i * packet_size, block_ptr, block_size);
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size, &seed_size, sizeof(u8));
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size + sizeof(u8), &seed, seed_size);
-        free(block_ptr);
+        gen_packet(seed, i, block_size + sizeof(u8) + sizeof(u16), write_data_tmp_ptr,
+                    real_data_ptr, real_data_size, block_size);
     }
 
     write_data_tmp_ptr += packet_u16_cnt * (block_size + sizeof(u8) + 2);
-    seed_size = 4;
-    packet_size = block_size + sizeof(u8) + seed_size;
     for (u32 i = 0; i < packet_u32_cnt; i++) {
         u32 seed = i + packet_u8_cnt + packet_u16_cnt;
-        u32 degree = gen_degree_ideal_soliton(seed, real_data_size / block_size);
-        std::set<u32> indexes = gen_indexes(seed, degree, real_data_size / block_size);
-
-        u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-        for (auto index : indexes) {
-            for (u32 j = 0; j < block_size; j++)
-                block_ptr[j] ^= real_data_ptr[index * block_size + j];
-        }
-
-        memcpy(write_data_tmp_ptr + i * packet_size, block_ptr, block_size);
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size, &seed_size, sizeof(u8));
-        memcpy(write_data_tmp_ptr + i * packet_size + block_size + sizeof(u8), &seed, seed_size);
-        free(block_ptr);
+        gen_packet(seed, i, block_size + sizeof(u8) + sizeof(u32), write_data_tmp_ptr,
+                    real_data_ptr, real_data_size, block_size);
     }
 
     Data write_data;
@@ -149,52 +107,43 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
     }
 
     std::vector<bool> is_decoded(block_cnt, false);
-    u32 packet_u8_size = block_size + sizeof(u8) + 1;
-    u32 packet_u16_size = block_size + sizeof(u8) + 2;
-    u32 packet_u32_size = block_size + sizeof(u8) + 4;
-    //TODO: 将原本的内层 for 循环改为用指针的 while 循环，手动控制指针移动，进行边界检查
     bool flag = true;
     while (flag) {
         flag = false;
         u8* encode_data_tmp_ptr = encode_data_ptr;
         while (encode_data_tmp_ptr < encode_data_ptr + encode_data_size) {
             u8 seed_size = *(encode_data_tmp_ptr + block_size);
-            u32 packet_size = block_size + sizeof(u8) + seed_size;
             u32 seed = 0;
-            if (seed_size == 1) {
+            if (seed_size == 1)
                 seed = *(encode_data_tmp_ptr + block_size + sizeof(u8));
-                encode_data_tmp_ptr += packet_u8_size;
-            } else if (seed_size == 2) {
+            else if (seed_size == 2)
                 seed = *(u16*)(encode_data_tmp_ptr + block_size + sizeof(u8));
-                encode_data_tmp_ptr += packet_u16_size;
-            } else {
+            else
                 seed = *(u32*)(encode_data_tmp_ptr + block_size + sizeof(u8));
-                encode_data_tmp_ptr += packet_u32_size;
-            }
-
             u32 degree = gen_degree_ideal_soliton(seed, block_cnt);
             std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
-            for (auto index : indexes) {
+
+            for (auto index : indexes)
                 if (is_decoded[index])
                     degree--;
-            }
             if (degree == 1) {
                 u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-                memcpy(block_ptr, encode_data_tmp_ptr - packet_size, block_size);
+                memcpy(block_ptr, encode_data_tmp_ptr, block_size);
                 u32 new_decode_index = 0;
                 for (auto index : indexes) {
-                    if (is_decoded[index]) {
+                    if (is_decoded[index])
                         for (u32 j = 0; j < block_size; j++)
                             block_ptr[j] ^= decode_data_ptr[index * block_size + j];
-                    }
                     else
                         new_decode_index = index;
                 }
                 memcpy(decode_data_ptr + new_decode_index * block_size, block_ptr, block_size);
-                free(block_ptr);
                 is_decoded[new_decode_index] = true;
+                free(block_ptr); 
                 flag = true;
             }
+
+            encode_data_tmp_ptr += block_size + sizeof(u8) + seed_size;
         }
     }
 
@@ -205,16 +154,13 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
     return decode_data;
 }
 
-// 读取原始文件
 Data read_raw_file(FILE* fp, u32 block_size) {
     fseek(fp, 0, SEEK_END);
-    // 读入的文件内容字节长度
     u32 raw_data_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     u32 padding = 0;
     if (raw_data_size % block_size != 0)
         padding = block_size - raw_data_size % block_size;
-    // 对齐后的文件内容字节长度
     u32 real_data_size = raw_data_size + padding;
 
     u8* real_data_ptr = (u8*)calloc(real_data_size, sizeof(u8));
@@ -232,7 +178,6 @@ Data read_raw_file(FILE* fp, u32 block_size) {
     return real_data;
 }
 
-// 读取编码文件
 Data read_encode_file(FILE* fp) {
     fseek(fp, 0, SEEK_END);
     u32 encode_data_size = ftell(fp);

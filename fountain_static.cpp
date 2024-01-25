@@ -1,6 +1,6 @@
 #include "fountain.h"
 
-// 种子大小 4 字节
+// 种子长度固定为 4 字节
 #define SEED_SIZE 4
 
 u32 gen_degree_ideal_soliton(u32 seed, u32 block_cnt) {
@@ -77,8 +77,8 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
         for (u32 i = 0; i < packet_cnt; i++) {
             u32 seed = *(u32*)(encode_data_ptr + i * (block_size + SEED_SIZE) + block_size);
             u32 degree = gen_degree_ideal_soliton(seed, block_cnt);
-
             std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
+
             for (auto index : indexes) {
                 if (is_decoded[index])
                     degree--;
@@ -110,7 +110,6 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
     return decode_data;
 }
 
-// 读取原始文件
 Data read_raw_file(FILE* fp, u32 block_size) {
     fseek(fp, 0, SEEK_END);
     // 读入的文件内容字节长度
@@ -137,7 +136,6 @@ Data read_raw_file(FILE* fp, u32 block_size) {
     return real_data;
 }
 
-// 读取编码文件
 Data read_encode_file(FILE* fp) {
     fseek(fp, 0, SEEK_END);
     u32 encode_data_size = ftell(fp);

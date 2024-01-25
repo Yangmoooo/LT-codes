@@ -3,18 +3,29 @@ CFLAGS = -O2
 
 ENCODE_SRC = encode.c fountain_%.cpp
 DECODE_SRC = decode.c fountain_%.cpp
-STATIC_EXE = static_encoder.exe static_decoder.exe
-DYNAMIC_EXE = dynamic_encoder.exe dynamic_decoder.exe
 
-%_encoder.exe: $(ENCODE_SRC)
+ifeq ($(OS),Windows_NT)
+    SUFFIX = .exe
+else
+    SUFFIX = .out
+endif
+
+STATIC_TARGET = static_encoder$(SUFFIX) static_decoder$(SUFFIX)
+DYNAMIC_TARGET = dynamic_encoder$(SUFFIX) dynamic_decoder$(SUFFIX)
+
+%_encoder$(SUFFIX): $(ENCODE_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
 
-%_decoder.exe: $(DECODE_SRC)
+%_decoder$(SUFFIX): $(DECODE_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
 
-static: $(STATIC_EXE)
+static: $(STATIC_TARGET)
 
-dynamic: $(DYNAMIC_EXE)
+dynamic: $(DYNAMIC_TARGET)
 
 clean:
-	del *.exe 2>nul & del /Q .\output\* 2>nul
+ifeq ($(OS),Windows_NT)
+	del /Q *$(SUFFIX) 2>nul & del /Q .\output\* 2>nul
+else
+	rm -f *$(SUFFIX); rm -rf ./output/*
+endif

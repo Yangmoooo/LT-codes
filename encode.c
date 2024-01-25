@@ -6,9 +6,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // packet 即 droplet
-    // packet = block + seed
-
     // 传入参数：待编码文件路径、block 大小、packet 数量
     char* file_name = argv[1];
     u32 block_size = atoi(argv[2]);
@@ -29,7 +26,12 @@ int main(int argc, char* argv[]) {
     u8* write_data_ptr = write_data.ptr;
     u32 write_data_size = write_data.size;
 
-    FILE* file_write_ptr = fopen("./output/encode.txt", "wb");
+    #ifdef _WIN32
+    _mkdir("./output");
+    #else
+    mkdir("./output", 0777);
+    #endif
+    FILE* file_write_ptr = fopen("./output/encode.bin", "wb");
     if (!file_write_ptr) {
         printf("Open write file error!\n");
         free(write_data_ptr);

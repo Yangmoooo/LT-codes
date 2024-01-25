@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 传入参数：待解码文件名、block 大小、原始文件大小
+    // 传入参数：待解码文件路径、block 大小、原始文件大小
     char* file_name = argv[1];
     u32 block_size = atoi(argv[2]);
     u32 raw_data_size = atoi(argv[3]);
@@ -26,7 +26,12 @@ int main(int argc, char* argv[]) {
     u8* decode_data_ptr = decode_data.ptr;
     u32 decode_data_size = decode_data.size;
 
-    FILE* file_decode_ptr = fopen("./output/decode.txt", "wb");
+    #ifdef _WIN32
+    _mkdir("./output");
+    #else
+    mkdir("./output", 0777);
+    #endif
+    FILE* file_decode_ptr = fopen("./output/decode.bin", "wb");
     if (!file_decode_ptr) {
         printf("Open decode file error!\n");
         free(decode_data_ptr);
