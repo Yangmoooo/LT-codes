@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <set>
+#include <random>
+
 #include "fountain.h"
 
 // 种子长度固定为 4 字节

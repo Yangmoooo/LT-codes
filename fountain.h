@@ -1,14 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifdef _WIN32
-#include <direct.h>
-#else
-#include <sys/stat.h>
-#endif
-// #include <time.h>
-#include <set>
-#include <random>
+/* C-style implementation of Fountain Code
+ * Copyright (c) 2024, Zhaoyang Pan <yangmoooo at outlook dot com>
+ * All rights reserved.
+ */
 
 typedef unsigned char u8;
 typedef signed char i8;

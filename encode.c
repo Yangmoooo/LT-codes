@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
+
 #include "fountain.h"
 
 int main(int argc, char* argv[]) {
