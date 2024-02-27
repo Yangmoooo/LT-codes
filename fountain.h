@@ -1,4 +1,4 @@
-/* C-style implementation of Fountain Code
+/* Fountain Code implementation based on variable-length seeds.
  * Copyright (c) 2024, Zhaoyang Pan <yangmoooo at outlook dot com>
  * All rights reserved.
  */

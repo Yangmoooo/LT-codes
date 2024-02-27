@@ -1,12 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef _WIN32
-#include <direct.h>
-#else
-#include <sys/stat.h>
-#endif
-
 #include "fountain.h"
 
 int main(int argc, char* argv[]) {
@@ -35,12 +28,7 @@ int main(int argc, char* argv[]) {
     u8* write_data_ptr = write_data.ptr;
     u32 write_data_size = write_data.size;
 
-    #ifdef _WIN32
-    _mkdir("./output");
-    #else
-    mkdir("./output", 0777);
-    #endif
-    FILE* file_write_ptr = fopen("./output/encode.bin", "wb");
+    FILE* file_write_ptr = fopen("./data/encode.bin", "wb");
     if (!file_write_ptr) {
         printf("Open write file error!\n");
         free(write_data_ptr);

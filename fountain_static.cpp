@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <set>
 #include <random>
-
 #include "fountain.h"
 
 // 种子长度固定为 4 字节
-#define SEED_SIZE 4
+u32 seed_size = 4;
 
 u32 gen_degree_ideal_soliton(u32 seed, u32 block_cnt) {
     std::mt19937 gen_rand(seed);
@@ -32,7 +32,7 @@ std::set<u32> gen_indexes(u32 seed, u32 degree, u32 block_cnt) {
 
 Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
     // 写缓冲区大小为 (编码块大小 + 种子大小) * 编码包数量
-    u8* write_data_ptr = (u8*)calloc((block_size + SEED_SIZE) * packet_cnt, sizeof(u8));
+    u8* write_data_ptr = (u8*)calloc((block_size + seed_size) * packet_cnt, sizeof(u8));
     if (!write_data_ptr) {
         printf("Calloc write buffer error!\n");
         exit(-1);
@@ -50,20 +50,20 @@ Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cn
                 block_ptr[j] ^= real_data_ptr[index * block_size + j];
         }
 
-        memcpy(write_data_ptr + i * (block_size + SEED_SIZE), block_ptr, block_size);
-        memcpy(write_data_ptr + i * (block_size + SEED_SIZE) + block_size, &seed, SEED_SIZE);
+        memcpy(write_data_ptr + i * (block_size + seed_size), block_ptr, block_size);
+        memcpy(write_data_ptr + i * (block_size + seed_size) + block_size, &seed, seed_size);
         free(block_ptr);
     }
 
     Data write_data;
     write_data.ptr = write_data_ptr;
-    write_data.size = (block_size + SEED_SIZE) * packet_cnt;
+    write_data.size = (block_size + seed_size) * packet_cnt;
 
     return write_data;
 }
 
 Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_data_size) {
-    u32 packet_cnt = encode_data_size / (block_size + SEED_SIZE);
+    u32 packet_cnt = encode_data_size / (block_size + seed_size);
     // block_cnt 是原始文件对齐后按照 block_size 划分的块数
     u32 block_cnt = raw_data_size / block_size;
     if (raw_data_size % block_size != 0)
@@ -80,7 +80,7 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
     while (flag) {
         flag = false;
         for (u32 i = 0; i < packet_cnt; i++) {
-            u32 seed = *(u32*)(encode_data_ptr + i * (block_size + SEED_SIZE) + block_size);
+            u32 seed = *(u32*)(encode_data_ptr + i * (block_size + seed_size) + block_size);
             u32 degree = gen_degree_ideal_soliton(seed, block_cnt);
             std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
 
@@ -90,7 +90,7 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
             }
             if (degree == 1) {
                 u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-                memcpy(block_ptr, encode_data_ptr + i * (block_size + SEED_SIZE), block_size);
+                memcpy(block_ptr, encode_data_ptr + i * (block_size + seed_size), block_size);
                 u32 new_decode_index = 0;
                 for (auto index : indexes) {
                     if (is_decoded[index]) {

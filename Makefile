@@ -1,5 +1,6 @@
-CC = g++
-CFLAGS = -O2
+# CC = g++
+CC = clang++
+CFLAGS =
 
 ENCODE_SRC = encode.c fountain_%.cpp
 DECODE_SRC = decode.c fountain_%.cpp
@@ -25,7 +26,9 @@ dynamic: $(DYNAMIC_TARGET)
 
 clean:
 ifeq ($(OS),Windows_NT)
-	del /Q *$(SUFFIX) 2>nul & del /Q .\output\* 2>nul
+	del /Q *$(SUFFIX) 2>nul
+	del /Q .\data\encode.bin 2>nul
+	del /Q .\data\decode.* 2>nul
 else
-	rm -f *$(SUFFIX); rm -rf ./output/*
+	rm -f *$(SUFFIX) ./data/encode.bin ./data/decode.*
 endif

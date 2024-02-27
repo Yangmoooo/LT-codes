@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <set>
 #include <random>
-
 #include "fountain.h"
 
 // 种子长度可以为 1 字节、2 字节、4 字节
-#define MAX_U8 255
-#define MAX_U16 65535
 
 template <typename T>
 u32 gen_degree_ideal_soliton(T seed, u32 block_cnt) {
@@ -53,14 +51,14 @@ void gen_packet(T seed, u32 packet_pos, u32 packet_size, u8* packet_ptr,
 
 Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
     u32 packet_u8_cnt = 0, packet_u16_cnt = 0, packet_u32_cnt = 0;
-    if (packet_cnt <= MAX_U8 + 1) {
+    if (packet_cnt <= 256) {
         packet_u8_cnt = packet_cnt;
-    } else if (packet_cnt <= MAX_U16 + 1) {
-        packet_u8_cnt = MAX_U8 + 1;
+    } else if (packet_cnt <= 65536) {
+        packet_u8_cnt = 256;
         packet_u16_cnt = packet_cnt - packet_u8_cnt;
     } else {
-        packet_u8_cnt = MAX_U8 + 1;
-        packet_u16_cnt = MAX_U16 - MAX_U8;
+        packet_u8_cnt = 256;
+        packet_u16_cnt = 65536 - packet_u8_cnt;
         packet_u32_cnt = packet_cnt - packet_u8_cnt - packet_u16_cnt;
     }
 
