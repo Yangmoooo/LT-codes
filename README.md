@@ -4,9 +4,9 @@
 
 针对编码使用的随机种子，以其定长版本为基础，设计了可变长度版本
 
-在 Windows 11 下使用 clang++ 16 和 MSYS2 的 UCRT64 g++ 编译通过
-
 在 Arch 下使用 clang++ 16 和 g++ 编译通过
+
+在 Windows 11 下使用 clang++ 16 和 MSYS2 的 UCRT64 g++ 编译通过
 
 ## 使用方法
 

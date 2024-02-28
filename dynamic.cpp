@@ -1,9 +1,9 @@
+#include "fountain.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <set>
 #include <random>
-#include "fountain.h"
 
 // 种子长度可以为 1 字节、2 字节、4 字节
 
@@ -67,8 +67,8 @@ Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cn
                           (block_size + sizeof(u8) + sizeof(u32)) * packet_u32_cnt;
     u8* write_data_ptr = (u8*)calloc(write_data_size, sizeof(u8));
     if (!write_data_ptr) {
-        printf("Calloc write buffer error!\n");
-        exit(-1);
+        perror("Calloc write buffer error");
+        exit(EXIT_FAILURE);
     }
 
     u8* write_data_tmp_ptr = write_data_ptr;
@@ -105,8 +105,8 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
         block_cnt++;
     u8* decode_data_ptr = (u8*)calloc(block_size * block_cnt, sizeof(u8));
     if (!decode_data_ptr) {
-        printf("Calloc decode buffer error!\n");
-        exit(-1);
+        perror("Calloc decode buffer error");
+        exit(EXIT_FAILURE);
     }
 
     std::vector<bool> is_decoded(block_cnt, false);
@@ -168,9 +168,9 @@ Data read_raw_file(FILE* fp, u32 block_size) {
 
     u8* real_data_ptr = (u8*)calloc(real_data_size, sizeof(u8));
     if (!real_data_ptr) {
-        printf("Calloc read buffer error!\n");
+        perror("Calloc read buffer error");
         fclose(fp);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     fread(real_data_ptr, 1, raw_data_size, fp);
 
@@ -188,9 +188,9 @@ Data read_encode_file(FILE* fp) {
 
     u8* encode_data_ptr = (u8*)calloc(encode_data_size, sizeof(u8));
     if (!encode_data_ptr) {
-        printf("Calloc encode buffer error!\n");
+        perror("Calloc encode buffer error");
         fclose(fp);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     fread(encode_data_ptr, 1, encode_data_size, fp);
 

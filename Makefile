@@ -1,9 +1,7 @@
-# CC = g++
-CC = clang++
+CC = clang
 CFLAGS =
-
-ENCODE_SRC = encode.c fountain_%.cpp
-DECODE_SRC = decode.c fountain_%.cpp
+CXX = clang++
+CXXFLAGS =
 
 ifeq ($(OS),Windows_NT)
     SUFFIX = .exe
@@ -11,24 +9,35 @@ else
     SUFFIX = .out
 endif
 
-STATIC_TARGET = static_encoder$(SUFFIX) static_decoder$(SUFFIX)
-DYNAMIC_TARGET = dynamic_encoder$(SUFFIX) dynamic_decoder$(SUFFIX)
-
-%_encoder$(SUFFIX): $(ENCODE_SRC)
-	$(CC) $(CFLAGS) $^ -o $@
-
-%_decoder$(SUFFIX): $(DECODE_SRC)
-	$(CC) $(CFLAGS) $^ -o $@
+STATIC_TARGET = encoder-static$(SUFFIX) decoder-static$(SUFFIX)
+DYNAMIC_TARGET = encoder-dynamic$(SUFFIX) decoder-dynamic$(SUFFIX)
 
 static: $(STATIC_TARGET)
-
 dynamic: $(DYNAMIC_TARGET)
+
+encoder-%$(SUFFIX): encode.o %.o
+	$(CXX) $^ -o $@
+
+decoder-%$(SUFFIX): decode.o %.o
+	$(CXX) $^ -o $@
+
+encode.o: encode.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+decode.o: decode.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 ifeq ($(OS),Windows_NT)
 	del /Q *$(SUFFIX) 2>nul
+	del /Q *.o 2>nul
 	del /Q .\data\encode.bin 2>nul
 	del /Q .\data\decode.* 2>nul
 else
-	rm -f *$(SUFFIX) ./data/encode.bin ./data/decode.*
+	rm -f *$(SUFFIX) *.o ./data/encode.bin ./data/decode.*
 endif
+
+.PHONY: static dynamic clean

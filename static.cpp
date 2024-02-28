@@ -1,12 +1,12 @@
+#include "fountain.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <set>
 #include <random>
-#include "fountain.h"
 
 // 种子长度固定为 4 字节
-u32 seed_size = 4;
+static u32 seed_size = 4;
 
 u32 gen_degree_ideal_soliton(u32 seed, u32 block_cnt) {
     std::mt19937 gen_rand(seed);
@@ -34,8 +34,8 @@ Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cn
     // 写缓冲区大小为 (编码块大小 + 种子大小) * 编码包数量
     u8* write_data_ptr = (u8*)calloc((block_size + seed_size) * packet_cnt, sizeof(u8));
     if (!write_data_ptr) {
-        printf("Calloc write buffer error!\n");
-        exit(-1);
+        perror("Calloc write buffer error");
+        exit(EXIT_FAILURE);
     }
 
     for (u32 i = 0; i < packet_cnt; i++) {
@@ -70,8 +70,8 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
         block_cnt++;
     u8* decode_data_ptr = (u8*)calloc(block_size * block_cnt, sizeof(u8));
     if (!decode_data_ptr) {
-        printf("Calloc decode buffer error!\n");
-        exit(-1);
+        perror("Calloc decode buffer error");
+        exit(EXIT_FAILURE);
     }
 
     // Belief Propagation 解码
@@ -128,9 +128,9 @@ Data read_raw_file(FILE* fp, u32 block_size) {
 
     u8* real_data_ptr = (u8*)calloc(real_data_size, sizeof(u8));
     if (!real_data_ptr) {
-        printf("Calloc read buffer error!\n");
+        perror("Calloc read buffer error");
         fclose(fp);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     fread(real_data_ptr, 1, raw_data_size, fp);
 
@@ -148,9 +148,9 @@ Data read_encode_file(FILE* fp) {
 
     u8* encode_data_ptr = (u8*)calloc(encode_data_size, sizeof(u8));
     if (!encode_data_ptr) {
-        printf("Calloc encode buffer error!\n");
+        perror("Calloc encode buffer error");
         fclose(fp);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     fread(encode_data_ptr, 1, encode_data_size, fp);
 

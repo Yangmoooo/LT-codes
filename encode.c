@@ -1,10 +1,10 @@
+#include "fountain.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "fountain.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        printf("Parameters error!\n");
+        perror("Parameters error");
         return 1;
     }
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
     FILE* file_open_ptr = fopen(file_name, "rb");
     if (!file_open_ptr) {
-        printf("Open read file error!\n");
+        perror("Open read file error");
         return 1;
     }
     Data real_data = read_raw_file(file_open_ptr, block_size);
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 
     FILE* file_write_ptr = fopen("./data/encode.bin", "wb");
     if (!file_write_ptr) {
-        printf("Open write file error!\n");
+        perror("Open write file error");
         free(write_data_ptr);
         return 1;
     }
