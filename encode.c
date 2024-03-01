@@ -2,6 +2,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+Data read_raw_file(FILE* fp, u32 block_size) {
+    fseek(fp, 0, SEEK_END);
+    // 读入的文件内容字节长度
+    u32 raw_data_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    u32 padding = 0;
+    if (raw_data_size % block_size != 0)
+        padding = block_size - raw_data_size % block_size;
+    // 对齐后的文件内容字节长度
+    u32 real_data_size = raw_data_size + padding;
+
+    u8* real_data_ptr = (u8*)calloc(real_data_size, sizeof(u8));
+    if (!real_data_ptr) {
+        perror("Calloc read buffer error");
+        fclose(fp);
+        exit(EXIT_FAILURE);
+    }
+    fread(real_data_ptr, 1, raw_data_size, fp);
+    Data real_data = {real_data_ptr, real_data_size};
+
+    return real_data;
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         perror("Parameters error");

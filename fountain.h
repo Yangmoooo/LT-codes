@@ -2,6 +2,8 @@
  * Copyright (c) 2024, Zhaoyang Pan <yangmoooo at outlook dot com>
  * All rights reserved.
  */
+#pragma once
+
 #include <stdio.h>
 
 typedef unsigned char u8;
@@ -24,8 +26,6 @@ extern "C" {
 
 Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt);
 Data decode(u8* write_data_ptr, u32 write_data_size, u32 block_size, u32 raw_data_size);
-Data read_raw_file(FILE* fp, u32 block_size);
-Data read_encode_file(FILE* fp);
 
 #ifdef __cplusplus
 }

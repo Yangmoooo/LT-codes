@@ -1,7 +1,7 @@
 CC = clang
-CFLAGS =
+CFLAGS = -O0 -g -Wall
 CXX = clang++
-CXXFLAGS =
+CXXFLAGS = -O0 -g -Wall
 
 ifeq ($(OS),Windows_NT)
     SUFFIX = .exe

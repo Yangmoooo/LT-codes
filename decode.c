@@ -2,6 +2,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+Data read_encode_file(FILE* fp) {
+    fseek(fp, 0, SEEK_END);
+    u32 encode_data_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    u8* encode_data_ptr = (u8*)calloc(encode_data_size, sizeof(u8));
+    if (!encode_data_ptr) {
+        perror("Calloc encode buffer error");
+        fclose(fp);
+        exit(EXIT_FAILURE);
+    }
+    fread(encode_data_ptr, 1, encode_data_size, fp);
+    Data encode_data = {encode_data_ptr, encode_data_size};
+
+    return encode_data;
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         perror("Parameters error");
