@@ -9,11 +9,13 @@ else
     SUFFIX = .out
 endif
 
-STATIC_TARGET = encoder-static$(SUFFIX) decoder-static$(SUFFIX)
-DYNAMIC_TARGET = encoder-dynamic$(SUFFIX) decoder-dynamic$(SUFFIX)
+VPATH = src
 
-static: $(STATIC_TARGET)
-dynamic: $(DYNAMIC_TARGET)
+TARGET_STATIC = encoder-static$(SUFFIX) decoder-static$(SUFFIX)
+TARGET_DYNAMIC = encoder-dynamic$(SUFFIX) decoder-dynamic$(SUFFIX)
+
+static: $(TARGET_STATIC)
+dynamic: $(TARGET_DYNAMIC)
 
 encoder-%$(SUFFIX): encode.o %.o
 	$(CXX) $^ -o $@
@@ -21,10 +23,7 @@ encoder-%$(SUFFIX): encode.o %.o
 decoder-%$(SUFFIX): decode.o %.o
 	$(CXX) $^ -o $@
 
-encode.o: encode.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-decode.o: decode.c
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp
@@ -34,10 +33,9 @@ clean:
 ifeq ($(OS),Windows_NT)
 	del /Q *$(SUFFIX) 2>nul
 	del /Q *.o 2>nul
-	del /Q .\data\encode.bin 2>nul
-	del /Q .\data\decode.* 2>nul
+	del /Q .\data\*.bin 2>nul
 else
-	rm -f *$(SUFFIX) *.o ./data/encode.bin ./data/decode.*
+	rm -f *$(SUFFIX) *.o data/*.bin
 endif
 
 .PHONY: static dynamic clean
