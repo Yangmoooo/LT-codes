@@ -20,6 +20,11 @@ typedef struct {
     u32 size;
 } Data;
 
+typedef struct {
+    u8 type : 2;
+    u8 val : 6;
+} Seed;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
