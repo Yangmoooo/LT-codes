@@ -1,144 +1,105 @@
-#include "fountain.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
-#include <set>
-#include <cmath>
-#include <numeric>
-#include <random>
+#include <math.h>
 
-// 种子长度固定为 4 字节
-static u32 seed_size = 4;
+#include "fountain.h"
+#include "utils.h"
 
-std::vector<double> calc_probs_robust_soliton(u32 block_cnt, double R, double delta) {
-    std::vector<double> probs(block_cnt + 1, 0.0);
-    u32 critical_point = static_cast<u32>(std::ceil(block_cnt / R));
-    double tau_critical = R * std::log(R / delta) / block_cnt;
-    double Z = 0.0; // 归一化常数
+/* packet = block + seed + CRC-8
+    * block: block_size bytes
+    * seed: seed_size bytes
+    * CRC-8: 1 byte
+    */
 
-    for (u32 d = 1; d <= block_cnt; ++d) {
-        // 理想孤子部分
-        if (d == 1) {
-            probs[d] = 1.0 / block_cnt;
-        } else {
-            probs[d] = 1.0 / (d * (d - 1));
-        }
-        // 鲁棒孤子部分
-        double tau = 0.0;
-        if (d <= critical_point - 1) {
-            tau = (R / block_cnt) / d;
-        } else if (d == critical_point) {
-            tau = tau_critical;
-        }
-        probs[d] += tau;
-        Z += probs[d];
-    }
-    for (auto& prob : probs) {
-        prob /= Z;
-    }
+static uint32_t seed_size = 4;
 
-    return probs;
-}
-
-u32 gen_degree(u32 seed, u32 block_cnt, const std::vector<double>& probs) {
-    std::mt19937 gen_rand(seed);
-    std::uniform_real_distribution<> uniform(0.0, 1.0);
-    double rand_num = uniform(gen_rand);
-    u32 degree = 1;
-    double prob = probs[1];
-    while (rand_num > prob && degree < block_cnt) {
-        degree++;
-        prob += probs[degree];
-    }
-    return degree;
-}
-
-std::set<u32> gen_indexes(u32 seed, u32 degree, u32 block_cnt) {
-    std::mt19937 gen_rand(seed);
-    std::uniform_int_distribution<> uniform(0, block_cnt - 1);
-    std::set<u32> indexes;
-    while (indexes.size() < degree) {
-        indexes.insert(uniform(gen_rand));
-    }
-    return indexes;
-}
-
-Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt) {
-    u32 block_cnt = real_data_size / block_size;
-    // 写缓冲区大小为 (编码块大小 + 种子大小) * 编码包数量
-    u8* write_data_ptr = (u8*)calloc((block_size + seed_size) * packet_cnt, sizeof(u8));
+Data encode(uint8_t* real_data_ptr, uint32_t real_data_size, uint32_t block_size, 
+            uint32_t packet_cnt) {
+    uint32_t block_cnt = real_data_size / block_size;
+    // 写缓冲区大小为 (编码块大小 + 种子大小 + CRC-8) * 编码包数量
+    uint32_t packet_size = block_size + seed_size + 1;
+    uint8_t* write_data_ptr = (uint8_t*)calloc(packet_size * packet_cnt, sizeof(uint8_t));
     if (!write_data_ptr) {
         perror("Calloc write buffer error");
         exit(EXIT_FAILURE);
     }
 
-    std::vector<double> probs = calc_probs_robust_soliton(block_cnt, std::sqrt(block_cnt), 0.05);
-    for (u32 i = 0; i < packet_cnt; ++i) {
+    std::vector<double> probs = calc_probs(block_cnt, sqrt(block_cnt), 0.05);
+    for (uint32_t i = 0; i < packet_cnt; ++i) {
         // mt19937 算法生成的随机数质量足够好，不太需要将 seed 分散
-        u32 seed = i;
-        u32 degree = gen_degree(seed, block_cnt, probs);
-        std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
+        uint32_t seed = i;
+        uint32_t degree = gen_degree(seed, block_cnt, probs);
+        std::set<uint32_t> indexes = gen_indexes(seed, degree, block_cnt);
 
-        u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
+        uint8_t* block_ptr = (uint8_t*)calloc(block_size, sizeof(uint8_t));
         for (auto index : indexes) {
-            for (u32 j = 0; j < block_size; ++j) {
+            for (uint32_t j = 0; j < block_size; ++j) {
                 block_ptr[j] ^= real_data_ptr[index * block_size + j];
             }
         }
 
-        memcpy(write_data_ptr + i * (block_size + seed_size), block_ptr, block_size);
-        memcpy(write_data_ptr + i * (block_size + seed_size) + block_size, &seed, seed_size);
+        uint8_t* write_data_tmp_ptr = write_data_ptr + i * packet_size;
+        memcpy(write_data_tmp_ptr, block_ptr, block_size);
         free(block_ptr);
+        memcpy(write_data_tmp_ptr + block_size, &seed, seed_size);
+        write_data_tmp_ptr[block_size + seed_size] = calc_crc(write_data_tmp_ptr, 
+                                                              block_size + seed_size);
     }
-    Data write_data = {write_data_ptr, (block_size + seed_size) * packet_cnt};
-
+    Data write_data = {write_data_ptr, packet_size * packet_cnt};
     return write_data;
 }
 
-Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_data_size) {
-    u32 packet_cnt = encode_data_size / (block_size + seed_size);
+Data decode(uint8_t* encode_data_ptr, uint32_t encode_data_size, uint32_t block_size, 
+            uint32_t raw_data_size) {
+    uint32_t packet_size = block_size + seed_size + 1;
+    uint32_t packet_cnt = encode_data_size / packet_size;
     // block_cnt 是原始文件对齐后按照 block_size 划分的块数
-    u32 block_cnt = raw_data_size / block_size;
+    uint32_t block_cnt = raw_data_size / block_size;
     if (raw_data_size % block_size != 0) {
         block_cnt++;
     }
-    u8* decode_data_ptr = (u8*)calloc(block_size * block_cnt, sizeof(u8));
+    uint8_t* decode_data_ptr = (uint8_t*)calloc(block_size * block_cnt, sizeof(uint8_t));
     if (!decode_data_ptr) {
         perror("Calloc decode buffer error");
         exit(EXIT_FAILURE);
     }
 
     // Belief Propagation 解码
-    std::vector<double> probs = calc_probs_robust_soliton(block_cnt, std::sqrt(block_cnt), 0.05);
+    std::vector<double> probs = calc_probs(block_cnt, sqrt(block_cnt), 0.05);
     std::vector<bool> is_decoded(block_cnt, false);
     bool flag = true;
     while (flag) {
         flag = false;
-        for (u32 i = 0; i < packet_cnt; ++i) {
-            u32 seed = *(u32*)(encode_data_ptr + i * (block_size + seed_size) + block_size);
-            u32 degree = gen_degree(seed, block_cnt, probs);
-            std::set<u32> indexes = gen_indexes(seed, degree, block_cnt);
+        for (uint32_t i = 0; i < packet_cnt; ++i) {
+            uint8_t crc = calc_crc(encode_data_ptr + i * packet_size, block_size + seed_size);
+            if (crc != encode_data_ptr[i * packet_size + block_size + seed_size]) {
+                continue;
+            }
 
+            uint32_t seed = *(uint32_t*)(encode_data_ptr + i * packet_size + block_size);
+            uint32_t degree = gen_degree(seed, block_cnt, probs);
+            std::set<uint32_t> indexes = gen_indexes(seed, degree, block_cnt);
             for (auto index : indexes) {
                 if (is_decoded[index]) {
                     degree--;
                 }
             }
             if (degree == 1) {
-                u8* block_ptr = (u8*)calloc(block_size, sizeof(u8));
-                memcpy(block_ptr, encode_data_ptr + i * (block_size + seed_size), block_size);
-                u32 new_decode_index = 0;
+                uint8_t* block_ptr = (uint8_t*)calloc(block_size, sizeof(uint8_t));
+                memcpy(block_ptr, encode_data_ptr + i * packet_size, block_size);
+                uint32_t new_decode_index = 0;
                 for (auto index : indexes) {
                     if (is_decoded[index]) {
-                        for (u32 j = 0; j < block_size; ++j) {
+                        for (uint32_t j = 0; j < block_size; ++j) {
                             block_ptr[j] ^= decode_data_ptr[index * block_size + j];
                         }
                     } else {
                         new_decode_index = index;
                     }
                 }
-                memcpy(decode_data_ptr + new_decode_index * block_size, block_ptr, block_size);
+                memcpy(decode_data_ptr + new_decode_index * block_size, block_ptr, 
+                       block_size);
                 is_decoded[new_decode_index] = true;
                 free(block_ptr);
                 flag = true;
@@ -146,6 +107,5 @@ Data decode(u8* encode_data_ptr, u32 encode_data_size, u32 block_size, u32 raw_d
         }
     }
     Data decode_data = {decode_data_ptr, block_size * block_cnt};
-
     return decode_data;
 }

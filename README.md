@@ -12,9 +12,9 @@
 
 ```bash
 # 编码
-./encoder-static.out <待编码文件路径> <编码块大小(B)> <编码包数量>
+./encoder-static <待编码文件路径> <编码块大小(B)> <编码包数量>
 # 解码
-./decoder-static.out <待解码文件路径> <编码块大小(B)> <原始文件大小(B)>
+./decoder-static <待解码文件路径> <编码块大小(B)> <原始文件大小(B)>
 ```
 
 编码得到的 `encode.bin` 和解码得到的 `decode.bin` 均存放在 `./data` 目录下

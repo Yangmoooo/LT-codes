@@ -4,33 +4,26 @@
  */
 #pragma once
 
-#include <stdio.h>
-
-typedef unsigned char u8;
-typedef signed char i8;
-typedef unsigned short u16;
-typedef signed short i16;
-typedef unsigned int u32;
-typedef signed int i32;
-typedef unsigned long long u64;
-typedef signed long long i64;
+#include <stdint.h>
 
 typedef struct {
-    u8* ptr;
-    u32 size;
+    uint8_t* ptr;
+    uint32_t size;
 } Data;
 
 typedef struct {
-    u8 type : 2;
-    u8 val : 6;
-} Seed;
+    uint8_t type : 2;
+    uint8_t val : 6;
+} SeedHeader;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-Data encode(u8* real_data_ptr, u32 real_data_size, u32 block_size, u32 packet_cnt);
-Data decode(u8* write_data_ptr, u32 write_data_size, u32 block_size, u32 raw_data_size);
+Data encode(uint8_t* real_data_ptr, uint32_t real_data_size, 
+            uint32_t block_size, uint32_t packet_cnt);
+Data decode(uint8_t* write_data_ptr, uint32_t write_data_size, 
+            uint32_t block_size, uint32_t raw_data_size);
 
 #ifdef __cplusplus
 }

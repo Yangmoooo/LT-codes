@@ -1,3 +1,4 @@
 .vscode/
 data/*
 !data/input.png
+*coder-*

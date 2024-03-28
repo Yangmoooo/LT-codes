@@ -1,13 +1,14 @@
-#include "fountain.h"
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "fountain.h"
+
 Data read_encode_file(FILE* fp) {
     fseek(fp, 0, SEEK_END);
-    u32 encode_data_size = ftell(fp);
+    uint32_t encode_data_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    u8* encode_data_ptr = (u8*)calloc(encode_data_size, sizeof(u8));
+    uint8_t* encode_data_ptr = (uint8_t*)calloc(encode_data_size, sizeof(uint8_t));
     if (!encode_data_ptr) {
         perror("Calloc encode buffer error");
         fclose(fp);
@@ -27,8 +28,8 @@ int main(int argc, char* argv[]) {
 
     // 传入参数：待解码文件路径、block 大小、原始文件大小
     char* file_name = argv[1];
-    u32 block_size = atoi(argv[2]);
-    u32 raw_data_size = atoi(argv[3]);
+    uint32_t block_size = atoi(argv[2]);
+    uint32_t raw_data_size = atoi(argv[3]);
 
     FILE* file_encode_ptr = fopen(file_name, "rb");
     if (!file_encode_ptr) {
@@ -37,13 +38,14 @@ int main(int argc, char* argv[]) {
     }
     Data encode_data = read_encode_file(file_encode_ptr);
     fclose(file_encode_ptr);
-    u8* encode_data_ptr = encode_data.ptr;
-    u32 encode_data_size = encode_data.size;
+    uint8_t* encode_data_ptr = encode_data.ptr;
+    uint32_t encode_data_size = encode_data.size;
 
-    Data decode_data = decode(encode_data_ptr, encode_data_size, block_size, raw_data_size);
+    Data decode_data = decode(encode_data_ptr, encode_data_size, 
+                              block_size, raw_data_size);
     free(encode_data_ptr);
-    u8* decode_data_ptr = decode_data.ptr;
-    u32 decode_data_size = decode_data.size;
+    uint8_t* decode_data_ptr = decode_data.ptr;
+    uint32_t decode_data_size = decode_data.size;
 
     FILE* file_decode_ptr = fopen("./data/decode.bin", "wb");
     if (!file_decode_ptr) {
