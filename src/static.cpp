@@ -25,11 +25,11 @@ Data encode(uint8_t* real_data_ptr, uint32_t real_data_size, uint32_t block_size
         exit(EXIT_FAILURE);
     }
 
-    std::vector<double> probs = calc_probs(block_cnt, sqrt(block_cnt), 0.05);
+    std::vector<double> probs = gen_probs(block_cnt, sqrt(block_cnt), 0.05);
     for (uint32_t i = 0; i < packet_cnt; ++i) {
         // mt19937 算法生成的随机数质量足够好，不太需要将 seed 分散
         uint32_t seed = i;
-        uint32_t degree = gen_degree(seed, block_cnt, probs);
+        uint32_t degree = calc_degree(seed, block_cnt, probs);
         std::set<uint32_t> indexes = gen_indexes(seed, degree, block_cnt);
 
         uint8_t* block_ptr = (uint8_t*)calloc(block_size, sizeof(uint8_t));
@@ -66,7 +66,7 @@ Data decode(uint8_t* encode_data_ptr, uint32_t encode_data_size, uint32_t block_
     }
 
     // Belief Propagation 解码
-    std::vector<double> probs = calc_probs(block_cnt, sqrt(block_cnt), 0.05);
+    std::vector<double> probs = gen_probs(block_cnt, sqrt(block_cnt), 0.05);
     std::vector<bool> is_decoded(block_cnt, false);
     bool flag = true;
     while (flag) {
@@ -78,7 +78,7 @@ Data decode(uint8_t* encode_data_ptr, uint32_t encode_data_size, uint32_t block_
             }
 
             uint32_t seed = *(uint32_t*)(encode_data_ptr + i * packet_size + block_size);
-            uint32_t degree = gen_degree(seed, block_cnt, probs);
+            uint32_t degree = calc_degree(seed, block_cnt, probs);
             std::set<uint32_t> indexes = gen_indexes(seed, degree, block_cnt);
             for (auto index : indexes) {
                 if (is_decoded[index]) {

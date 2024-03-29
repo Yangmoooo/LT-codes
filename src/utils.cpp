@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-std::vector<double> calc_probs(uint32_t block_cnt, double R, double delta) {
+std::vector<double> gen_probs(uint32_t block_cnt, double R, double delta) {
     std::vector<double> probs(block_cnt + 1, 0.0);
     uint32_t critical_point = static_cast<uint32_t>(ceil(block_cnt / R));
     double tau_critical = R * log(R / delta) / block_cnt;
@@ -32,7 +32,7 @@ std::vector<double> calc_probs(uint32_t block_cnt, double R, double delta) {
     return probs;
 }
 
-uint32_t gen_degree(uint32_t seed, uint32_t block_cnt, const std::vector<double>& probs) {
+uint32_t calc_degree(uint32_t seed, uint32_t block_cnt, const std::vector<double>& probs) {
     std::mt19937 gen_rand(seed);
     std::uniform_real_distribution<> uniform(0.0, 1.0);
     double rand_num = uniform(gen_rand);

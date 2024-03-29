@@ -4,8 +4,8 @@
 #include <vector>
 #include <set>
 
-std::vector<double> calc_probs(uint32_t block_cnt, double R, double delta);
-uint32_t gen_degree(uint32_t seed, uint32_t block_cnt, const std::vector<double>& probs);
+std::vector<double> gen_probs(uint32_t block_cnt, double R, double delta);
+uint32_t calc_degree(uint32_t seed, uint32_t block_cnt, const std::vector<double>& probs);
 std::set<uint32_t> gen_indexes(uint32_t seed, uint32_t degree, uint32_t block_cnt);
 uint8_t calc_crc(uint8_t* data, uint32_t len);
 
