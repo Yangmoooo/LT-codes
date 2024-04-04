@@ -36,8 +36,9 @@ int main(int argc, char *argv[]) {
   uint32_t block_size = atoi(argv[2]);
   uint32_t raw_data_size = atoi(argv[3]);
 
-  FILE *file_encode_ptr = fopen(file_name, "rb");
-  if (!file_encode_ptr) {
+  FILE *file_encode_ptr = NULL;
+  errno_t err = fopen_s(&file_encode_ptr, file_name, "rb");
+  if (err != 0) {
     perror("Open encode file error");
     return 1;
   }
@@ -52,8 +53,9 @@ int main(int argc, char *argv[]) {
   uint8_t *decode_data_ptr = decode_data.ptr;
   uint32_t decode_data_size = decode_data.size;
 
-  FILE *file_decode_ptr = fopen("./data/decode.bin", "wb");
-  if (!file_decode_ptr) {
+  FILE *file_decode_ptr = NULL;
+  err = fopen_s(&file_decode_ptr, "./data/decode.bin", "wb");
+  if (err != 0) {
     perror("Open decode file error");
     free(decode_data_ptr);
     return 1;

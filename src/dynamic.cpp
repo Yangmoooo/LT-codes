@@ -16,7 +16,8 @@
  * CRC-8: 1 byte
  */
 
-void gen_packet_cnts(uint32_t packet_cnt, uint32_t packet_cnts[4]) {
+std::vector<uint32_t> gen_packet_cnts(uint32_t packet_cnt) {
+  std::vector<uint32_t> packet_cnts(4, 0);
   if (packet_cnt <= 8) {
     // 只使用 seed 中的 3 位
     packet_cnts[0] = packet_cnt;
@@ -34,6 +35,7 @@ void gen_packet_cnts(uint32_t packet_cnt, uint32_t packet_cnts[4]) {
     packet_cnts[2] = 524288 - 2048;
     packet_cnts[3] = packet_cnt - 524288;
   }
+  return packet_cnts;
 }
 
 uint32_t get_seed_type(SeedHdr &header) {
@@ -67,8 +69,7 @@ uint32_t get_seed_type(SeedHdr &header) {
 
 Data encode(uint8_t *real_data_ptr, uint32_t real_data_size,
             uint32_t block_size, uint32_t packet_cnt) {
-  uint32_t packet_cnts[4] = {0};
-  gen_packet_cnts(packet_cnt, packet_cnts);
+  std::vector<uint32_t> packet_cnts = gen_packet_cnts(packet_cnt);
   uint32_t write_data_size = 0;
   for (uint32_t i = 0; i < 4; ++i) {
     write_data_size += (block_size + i + 2) * packet_cnts[i];
@@ -114,8 +115,9 @@ Data encode(uint8_t *real_data_ptr, uint32_t real_data_size,
         *write_data_tmp_ptr++ = seed_ext;
       }
       // 构造 CRC-8
-      *write_data_tmp_ptr++ =
+      *write_data_tmp_ptr =
           calc_crc(write_data_tmp_ptr - block_size - 1 - i, block_size + 1 + i);
+      ++write_data_tmp_ptr;
       ++seed;
     }
   }

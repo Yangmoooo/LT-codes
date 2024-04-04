@@ -41,8 +41,9 @@ int main(int argc, char *argv[]) {
   uint32_t block_size = atoi(argv[2]);
   uint32_t packet_cnt = atoi(argv[3]);
 
-  FILE *file_open_ptr = fopen(file_name, "rb");
-  if (!file_open_ptr) {
+  FILE *file_open_ptr = NULL;
+  errno_t err = fopen_s(&file_open_ptr, file_name, "rb");
+  if (err != 0) {
     perror("Open read file error");
     return 1;
   }
@@ -57,8 +58,9 @@ int main(int argc, char *argv[]) {
   uint8_t *write_data_ptr = write_data.ptr;
   uint32_t write_data_size = write_data.size;
 
-  FILE *file_write_ptr = fopen("./data/encode.bin", "wb");
-  if (!file_write_ptr) {
+  FILE *file_write_ptr = NULL;
+  err = fopen_s(&file_write_ptr, "./data/encode.bin", "wb");
+  if (err != 0) {
     perror("Open write file error");
     free(write_data_ptr);
     return 1;
