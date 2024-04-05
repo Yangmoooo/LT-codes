@@ -1,5 +1,5 @@
 .vscode/
-data/*
-!data/input.png
+data/*.enc
+data/*.dec
 *coder-*
 *.bak

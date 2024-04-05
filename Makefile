@@ -5,13 +5,20 @@ CXXFLAGS = -O0 -g -Wall -Isrc
 
 VPATH = src
 
-static: encoder-static decoder-static
-dynamic: encoder-dynamic decoder-dynamic
+ifeq ($(OS),Windows_NT)
+	EXT = .exe
+else
+	EXT =
+endif
 
-encoder-%: %.o encode.o utils.o
+all: static dynamic clean
+static: encoder-static$(EXT) decoder-static$(EXT)
+dynamic: encoder-dynamic$(EXT) decoder-dynamic$(EXT)
+
+encoder-%$(EXT): %.o encode.o utils.o
 	$(CXX) $^ -o $@
 
-decoder-%: %.o decode.o utils.o
+decoder-%$(EXT): %.o decode.o utils.o
 	$(CXX) $^ -o $@
 
 %.o: %.c
@@ -28,4 +35,4 @@ else
 	rm -f *.o data/*.bin
 endif
 
-.PHONY: static dynamic clean
+.PHONY: all static dynamic clean

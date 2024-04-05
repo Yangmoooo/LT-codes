@@ -1,33 +1,34 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "fountain.h"
 
-Data read_raw_file(FILE *fp, uint32_t block_size) {
+Data read_src_file(FILE *fp, uint32_t block_size) {
   fseek(fp, 0, SEEK_END);
   // 读入的文件内容字节长度
   uint32_t raw_data_size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
   uint32_t padding = 0;
-  if (raw_data_size % block_size != 0)
+  if (raw_data_size % block_size != 0) {
     padding = block_size - raw_data_size % block_size;
+  }
   // 对齐后的文件内容字节长度
-  uint32_t real_data_size = raw_data_size + padding;
+  uint32_t pad_data_size = raw_data_size + padding;
 
-  uint8_t *real_data_ptr = (uint8_t *)calloc(real_data_size, sizeof(uint8_t));
-  if (!real_data_ptr) {
+  uint8_t *pad_data_ptr = (uint8_t *)calloc(pad_data_size, sizeof(uint8_t));
+  if (!pad_data_ptr) {
     perror("Calloc read buffer error");
     fclose(fp);
     exit(EXIT_FAILURE);
   }
-  fread(real_data_ptr, 1, raw_data_size, fp);
-  Data real_data = {
-      .ptr = real_data_ptr,
-      .size = real_data_size,
+  fread(pad_data_ptr, 1, raw_data_size, fp);
+  Data pad_data = {
+      .ptr = pad_data_ptr,
+      .size = pad_data_size,
   };
-
-  return real_data;
+  return pad_data;
 }
 
 int main(int argc, char *argv[]) {
@@ -41,33 +42,31 @@ int main(int argc, char *argv[]) {
   uint32_t block_size = atoi(argv[2]);
   uint32_t packet_cnt = atoi(argv[3]);
 
-  FILE *file_open_ptr = NULL;
-  errno_t err = fopen_s(&file_open_ptr, file_name, "rb");
+  FILE *src_file_ptr = NULL;
+  errno_t err = fopen_s(&src_file_ptr, file_name, "rb");
   if (err != 0) {
-    perror("Open read file error");
+    perror("Open source file error");
     return 1;
   }
-  Data real_data = read_raw_file(file_open_ptr, block_size);
-  fclose(file_open_ptr);
-  uint8_t *real_data_ptr = real_data.ptr;
-  uint32_t real_data_size = real_data.size;
+  Data pad_data = read_src_file(src_file_ptr, block_size);
+  fclose(src_file_ptr);
 
-  Data write_data =
-      encode(real_data_ptr, real_data_size, block_size, packet_cnt);
-  free(real_data_ptr);
-  uint8_t *write_data_ptr = write_data.ptr;
-  uint32_t write_data_size = write_data.size;
+  clock_t start = clock();
+  Data enc_data = encode(pad_data.ptr, pad_data.size, block_size, packet_cnt);
+  clock_t end = clock();
+  free(pad_data.ptr);
 
-  FILE *file_write_ptr = NULL;
-  err = fopen_s(&file_write_ptr, "./data/encode.bin", "wb");
+  FILE *enc_file_ptr = NULL;
+  err = fopen_s(&enc_file_ptr, "./data/encode.bin", "wb");
   if (err != 0) {
-    perror("Open write file error");
-    free(write_data_ptr);
+    perror("Open encode file error");
+    free(enc_data.ptr);
     return 1;
   }
-  fwrite(write_data_ptr, 1, write_data_size, file_write_ptr);
-  free(write_data_ptr);
-  fclose(file_write_ptr);
+  fwrite(enc_data.ptr, 1, enc_data.size, enc_file_ptr);
+  free(enc_data.ptr);
+  fclose(enc_file_ptr);
 
+  printf("Encode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
   return 0;
 }
