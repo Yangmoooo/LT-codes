@@ -7,7 +7,16 @@
 #include <unordered_set>
 #include <vector>
 
-std::vector<double> gen_probs(uint32_t block_cnt, double R, double delta) {
+uint8_t *AllocMem(uint32_t size) {
+  uint8_t *ptr = (uint8_t *)calloc(size, sizeof(uint8_t));
+  if (!ptr) {
+    perror("Calloc memory error");
+    exit(EXIT_FAILURE);
+  }
+  return ptr;
+}
+
+std::vector<double> GenProbs(uint32_t block_cnt, double R, double delta) {
   std::vector<double> probs(block_cnt + 1, 0.0);
   uint32_t critical_point = static_cast<uint32_t>(ceil(block_cnt / R));
   double tau_critical = R * log(R / delta) / block_cnt;
@@ -30,14 +39,14 @@ std::vector<double> gen_probs(uint32_t block_cnt, double R, double delta) {
     probs[d] += tau;
     Z += probs[d];
   }
-  for (auto& prob : probs) {
+  for (auto &prob : probs) {
     prob /= Z;
   }
   return probs;
 }
 
-uint32_t calc_degree(uint32_t seed, uint32_t block_cnt,
-                     const std::vector<double>& probs) {
+uint32_t CalcDegree(uint32_t seed, uint32_t block_cnt,
+                    const std::vector<double> &probs) {
   std::mt19937 gen_rand(seed);
   std::uniform_real_distribution<> uniform(0.0, 1.0);
   double rand_num = uniform(gen_rand);
@@ -50,8 +59,8 @@ uint32_t calc_degree(uint32_t seed, uint32_t block_cnt,
   return degree;
 }
 
-std::unordered_set<uint32_t> gen_indexes(uint32_t seed, uint32_t degree,
-                                         uint32_t block_cnt) {
+std::unordered_set<uint32_t> GenIndexes(uint32_t seed, uint32_t degree,
+                                        uint32_t block_cnt) {
   std::mt19937 gen_rand(seed);
   std::uniform_int_distribution<> uniform(0, block_cnt - 1);
   std::unordered_set<uint32_t> indexes;
@@ -61,7 +70,7 @@ std::unordered_set<uint32_t> gen_indexes(uint32_t seed, uint32_t degree,
   return indexes;
 }
 
-uint8_t calc_crc(uint8_t* data, uint32_t len) {
+uint8_t CalcCrc(uint8_t *data, uint32_t len) {
   uint8_t crc = 0;
   while (len--) {
     crc = crc8_table[crc ^ *data++];

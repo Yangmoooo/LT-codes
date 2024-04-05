@@ -1,7 +1,7 @@
 CC = clang
-CFLAGS = -O0 -g -Wall -Isrc
+CFLAGS = -O0 -g -Wall
 CXX = clang++
-CXXFLAGS = -O0 -g -Wall -Isrc
+CXXFLAGS = -O0 -g -Wall
 
 VPATH = src
 
@@ -11,14 +11,15 @@ else
 	EXT =
 endif
 
-all: static dynamic clean
+all: static dynamic nohamming clean
 static: encoder-static$(EXT) decoder-static$(EXT)
 dynamic: encoder-dynamic$(EXT) decoder-dynamic$(EXT)
+nohamming: encoder-nohamming$(EXT) decoder-nohamming$(EXT)
 
-encoder-%$(EXT): %.o encode.o utils.o
+encoder-%$(EXT): %.o encoder.o utils.o
 	$(CXX) $^ -o $@
 
-decoder-%$(EXT): %.o decode.o utils.o
+decoder-%$(EXT): %.o decoder.o utils.o
 	$(CXX) $^ -o $@
 
 %.o: %.c
@@ -35,4 +36,4 @@ else
 	rm -f *.o data/*.bin
 endif
 
-.PHONY: all static dynamic clean
+.PHONY: all static dynamic nohamming clean

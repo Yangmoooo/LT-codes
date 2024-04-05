@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "fountain.h"
+#include "core.h"
 
-Data read_src_file(FILE *fp, uint32_t block_size) {
+Data ReadSourceFile(FILE *fp, uint32_t block_size) {
+  atexit(free);
   fseek(fp, 0, SEEK_END);
   // 读入的文件内容字节长度
   uint32_t raw_data_size = ftell(fp);
@@ -42,30 +43,28 @@ int main(int argc, char *argv[]) {
   uint32_t block_size = atoi(argv[2]);
   uint32_t packet_cnt = atoi(argv[3]);
 
-  FILE *src_file_ptr = NULL;
-  errno_t err = fopen_s(&src_file_ptr, file_name, "rb");
-  if (err != 0) {
+  FILE *source_file_ptr = fopen(file_name, "rb");
+  if (!source_file_ptr) {
     perror("Open source file error");
     return 1;
   }
-  Data pad_data = read_src_file(src_file_ptr, block_size);
-  fclose(src_file_ptr);
+  Data pad_data = ReadSourceFile(source_file_ptr, block_size);
+  fclose(source_file_ptr);
 
   clock_t start = clock();
-  Data enc_data = encode(pad_data.ptr, pad_data.size, block_size, packet_cnt);
+  Data encode_data = Encode(pad_data.ptr, pad_data.size, block_size, packet_cnt);
   clock_t end = clock();
   free(pad_data.ptr);
 
-  FILE *enc_file_ptr = NULL;
-  err = fopen_s(&enc_file_ptr, "./data/encode.bin", "wb");
-  if (err != 0) {
+  FILE *encode_file_ptr = fopen("./data/encode.bin", "wb");
+  if (!encode_file_ptr) {
     perror("Open encode file error");
-    free(enc_data.ptr);
+    free(encode_data.ptr);
     return 1;
   }
-  fwrite(enc_data.ptr, 1, enc_data.size, enc_file_ptr);
-  free(enc_data.ptr);
-  fclose(enc_file_ptr);
+  fwrite(encode_data.ptr, 1, encode_data.size, encode_file_ptr);
+  free(encode_data.ptr);
+  fclose(encode_file_ptr);
 
   printf("Encode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
   return 0;

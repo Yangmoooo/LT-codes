@@ -1,16 +1,18 @@
-#pragma once
+#ifndef LTCODES_UTILS_H_
+#define LTCODES_UTILS_H_
 
 #include <stdint.h>
 
 #include <unordered_set>
 #include <vector>
 
-std::vector<double> gen_probs(uint32_t block_cnt, double R, double delta);
-uint32_t calc_degree(uint32_t seed, uint32_t block_cnt,
+uint8_t *AllocMem(uint32_t size);
+std::vector<double> GenProbs(uint32_t block_cnt, double R, double delta);
+uint32_t CalcDegree(uint32_t seed, uint32_t block_cnt,
                      const std::vector<double>& probs);
-std::unordered_set<uint32_t> gen_indexes(uint32_t seed, uint32_t degree,
+std::unordered_set<uint32_t> GenIndexes(uint32_t seed, uint32_t degree,
                                          uint32_t block_cnt);
-uint8_t calc_crc(uint8_t* data, uint32_t len);
+uint8_t CalcCrc(uint8_t *data, uint32_t len);
 
 const uint8_t crc8_table[] = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31,
@@ -58,3 +60,5 @@ void print_crc8_table(void) {
   }
 }
 */
+
+#endif  // LTCODES_UTILS_H_
