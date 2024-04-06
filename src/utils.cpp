@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <random>
 #include <unordered_set>
@@ -70,10 +71,40 @@ std::unordered_set<uint32_t> GenIndexes(uint32_t seed, uint32_t degree,
   return indexes;
 }
 
+void FillBlock(uint8_t *dst, uint8_t *src, uint32_t block_size,
+               const std::unordered_set<uint32_t> &indexes) {
+  uint8_t *block_ptr = AllocMem(block_size);
+  for (auto index : indexes) {
+    for (uint32_t i = 0; i < block_size; ++i) {
+      block_ptr[i] ^= src[index * block_size + i];
+    }
+  }
+  memcpy(dst, block_ptr, block_size);
+  free(block_ptr);
+}
+
 uint8_t CalcCrc(uint8_t *data, uint32_t len) {
   uint8_t crc = 0;
   while (len--) {
     crc = crc8_table[crc ^ *data++];
   }
   return crc;
+}
+
+void DecodeBlock(uint8_t *decode_data_ptr, uint8_t *block_ptr,
+                 uint32_t block_size, std::vector<bool> &is_decoded,
+                 const std::unordered_set<uint32_t> &indexes) {
+  uint32_t new_decode_index = 0;
+  for (uint32_t index : indexes) {
+    if (is_decoded[index]) {
+      for (uint32_t i = 0; i < block_size; ++i) {
+        block_ptr[i] ^= decode_data_ptr[index * block_size + i];
+      }
+    } else {
+      new_decode_index = index;
+    }
+  }
+  memcpy(decode_data_ptr + new_decode_index * block_size, block_ptr,
+         block_size);
+  is_decoded[new_decode_index] = true;
 }

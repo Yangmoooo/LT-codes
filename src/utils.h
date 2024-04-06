@@ -9,10 +9,15 @@
 uint8_t *AllocMem(uint32_t size);
 std::vector<double> GenProbs(uint32_t block_cnt, double R, double delta);
 uint32_t CalcDegree(uint32_t seed, uint32_t block_cnt,
-                     const std::vector<double>& probs);
+                    const std::vector<double> &probs);
 std::unordered_set<uint32_t> GenIndexes(uint32_t seed, uint32_t degree,
-                                         uint32_t block_cnt);
+                                        uint32_t block_cnt);
+void FillBlock(uint8_t *dst, uint8_t *src, uint32_t block_size,
+               const std::unordered_set<uint32_t> &indexes);
 uint8_t CalcCrc(uint8_t *data, uint32_t len);
+void DecodeBlock(uint8_t *decode_data_ptr, uint8_t *block_ptr,
+                 uint32_t block_size, std::vector<bool> &is_decoded,
+                 const std::unordered_set<uint32_t> &indexes);
 
 const uint8_t crc8_table[] = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31,
