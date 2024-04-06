@@ -1,12 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "core.h"
 
 Data ReadSourceFile(FILE *fp, uint32_t block_size) {
-  atexit(free);
   fseek(fp, 0, SEEK_END);
   // 读入的文件内容字节长度
   uint32_t raw_data_size = ftell(fp);
@@ -17,13 +17,13 @@ Data ReadSourceFile(FILE *fp, uint32_t block_size) {
   }
   // 对齐后的文件内容字节长度
   uint32_t pad_data_size = raw_data_size + padding;
-
   uint8_t *pad_data_ptr = (uint8_t *)calloc(pad_data_size, sizeof(uint8_t));
   if (!pad_data_ptr) {
     perror("Calloc read buffer error");
     fclose(fp);
     exit(EXIT_FAILURE);
   }
+
   fread(pad_data_ptr, 1, raw_data_size, fp);
   Data pad_data = {
       .ptr = pad_data_ptr,
@@ -52,11 +52,12 @@ int main(int argc, char *argv[]) {
   fclose(source_file_ptr);
 
   clock_t start = clock();
-  Data encode_data = Encode(pad_data.ptr, pad_data.size, block_size, packet_cnt);
+  Data encode_data =
+      Encode(pad_data.ptr, pad_data.size, block_size, packet_cnt);
   clock_t end = clock();
   free(pad_data.ptr);
 
-  FILE *encode_file_ptr = fopen("./data/encode.bin", "wb");
+  FILE *encode_file_ptr = fopen(strcat(file_name, ".enc"), "wb");
   if (!encode_file_ptr) {
     perror("Open encode file error");
     free(encode_data.ptr);

@@ -31,9 +31,10 @@ decoder-%$(EXT): %.o decoder.o utils.o
 clean:
 ifeq ($(OS),Windows_NT)
 	del /Q *.o 2>nul
-	del /Q .\data\*.bin 2>nul
+	del /Q .\data\*.enc 2>nul
+	del /Q .\data\*.dec 2>nul
 else
-	rm -f *.o data/*.bin
+	rm -f *.o data/*.enc data/*.dec
 endif
 
 .PHONY: all static dynamic nohamming clean

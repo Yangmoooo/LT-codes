@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "core.h"
@@ -9,13 +10,14 @@ Data ReadEncodeFile(FILE *fp) {
   fseek(fp, 0, SEEK_END);
   uint32_t encode_data_size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-
-  uint8_t *encode_data_ptr = (uint8_t *)calloc(encode_data_size, sizeof(uint8_t));
+  uint8_t *encode_data_ptr =
+      (uint8_t *)calloc(encode_data_size, sizeof(uint8_t));
   if (!encode_data_ptr) {
     perror("Calloc encode buffer error");
     fclose(fp);
     exit(EXIT_FAILURE);
   }
+
   fread(encode_data_ptr, 1, encode_data_size, fp);
   Data encode_data = {
       .ptr = encode_data_ptr,
@@ -49,7 +51,14 @@ int main(int argc, char *argv[]) {
   clock_t end = clock();
   free(encode_data.ptr);
 
-  FILE *decode_file_ptr = fopen("./data/decode.bin", "wb");
+  char *dot = strrchr(file_name, '.');
+  if (!dot) {
+    perror("Encode file name error");
+    free(decode_data.ptr);
+    return 1;
+  }
+  strcpy(dot, ".dec");
+  FILE *decode_file_ptr = fopen(file_name, "wb");
   if (!decode_file_ptr) {
     perror("Open decode file error");
     free(decode_data.ptr);

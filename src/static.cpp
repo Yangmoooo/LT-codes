@@ -60,7 +60,7 @@ Data Decode(uint8_t *encode_data_ptr, uint32_t encode_data_size,
   // block_cnt 是原始文件对齐后按照 block_size 划分的块数
   uint32_t block_cnt = raw_data_size / block_size;
   if (raw_data_size % block_size != 0) {
-    block_cnt++;
+    ++block_cnt;
   }
   uint8_t *decode_data_ptr = AllocMem(block_size * block_cnt);
 
@@ -84,7 +84,7 @@ Data Decode(uint8_t *encode_data_ptr, uint32_t encode_data_size,
           GenIndexes(seed, degree, block_cnt);
       for (auto index : indexes) {
         if (is_decoded[index]) {
-          degree--;
+          --degree;
         }
       }
       if (degree == 1) {

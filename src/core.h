@@ -31,8 +31,8 @@ typedef struct {
 extern "C" {
 #endif
 
-Data Encode(uint8_t *pad_data_ptr, uint32_t pad_data_size,
-            uint32_t block_size, uint32_t packet_cnt);
+Data Encode(uint8_t *pad_data_ptr, uint32_t pad_data_size, uint32_t block_size,
+            uint32_t packet_cnt);
 Data Decode(uint8_t *encode_data_ptr, uint32_t encode_data_size,
             uint32_t block_size, uint32_t raw_data_size);
 
