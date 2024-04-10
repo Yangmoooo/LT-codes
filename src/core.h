@@ -22,11 +22,6 @@ typedef struct {
   uint8_t val : 3;
 } SeedHdr;
 
-typedef struct {
-  uint8_t type : 2;
-  uint8_t val : 6;
-} SeedHdrNoHamming;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

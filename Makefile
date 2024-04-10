@@ -14,7 +14,6 @@ endif
 all: static dynamic nohamming clean
 static: encoder-static$(EXT) decoder-static$(EXT)
 dynamic: encoder-dynamic$(EXT) decoder-dynamic$(EXT)
-nohamming: encoder-nohamming$(EXT) decoder-nohamming$(EXT)
 
 encoder-%$(EXT): %.o encoder.o utils.o
 	$(CXX) $^ -o $@
@@ -37,4 +36,4 @@ else
 	rm -f *.o data/*.enc data/*.dec
 endif
 
-.PHONY: all static dynamic nohamming clean
+.PHONY: all static dynamic clean
