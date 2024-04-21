@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "utils.h"
+#include "utils.hpp"
 
 /* packet = block + seed + CRC-8
  * block: block_size bytes
