@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
   free(decode_data.ptr);
   fclose(decode_file_ptr);
 
-  printf("Decode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
+  // printf("Decode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
+  printf("%f,", (double)(end - start) / CLOCKS_PER_SEC);
   return 0;
 }

@@ -11,7 +11,7 @@ else
 	EXT =
 endif
 
-all: static dynamic nohamming clean
+all: static dynamic clean
 static: encoder-static$(EXT) decoder-static$(EXT)
 dynamic: encoder-dynamic$(EXT) decoder-dynamic$(EXT)
 

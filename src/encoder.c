@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
   free(encode_data.ptr);
   fclose(encode_file_ptr);
 
-  printf("Encode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
+  // printf("Encode time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
+  printf("%f,", (double)(end - start) / CLOCKS_PER_SEC);
   return 0;
 }
