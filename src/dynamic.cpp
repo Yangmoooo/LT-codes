@@ -130,6 +130,7 @@ Data Decode(uint8_t *encode_data_ptr, uint32_t encode_data_size,
   bool flag = true;
   while (flag) {
     flag = false;
+    // 若靠后的某个包长度字段出现 1 位以上错误，则最后一个包可能越界访问
     uint8_t *encode_data_tmp_ptr = encode_data_ptr;
     while (encode_data_tmp_ptr < encode_data_ptr + encode_data_size) {
       SeedHdr *seed_header = (SeedHdr *)(encode_data_tmp_ptr + block_size);
