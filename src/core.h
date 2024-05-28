@@ -9,18 +9,9 @@
 #include <stdint.h>
 
 typedef struct {
-  uint8_t *ptr;
-  uint32_t size;
+    uint8_t *ptr;
+    uint32_t size;
 } Data;
-
-typedef struct {
-  uint8_t p1 : 1;
-  uint8_t p2 : 1;
-  uint8_t d1 : 1;
-  uint8_t p3 : 1;
-  uint8_t d2 : 1;
-  uint8_t val : 3;
-} SeedHdr;
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +26,4 @@ Data Decode(uint8_t *encode_data_ptr, uint32_t encode_data_size,
 }
 #endif
 
-#endif  // LTCODES_CORE_H_
+#endif // LTCODES_CORE_H_

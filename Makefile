@@ -14,6 +14,7 @@ endif
 all: static dynamic clean
 static: encoder-static$(EXT) decoder-static$(EXT)
 dynamic: encoder-dynamic$(EXT) decoder-dynamic$(EXT)
+dyn_leb128: encoder-dyn_leb128$(EXT) decoder-dyn_leb128$(EXT)
 
 encoder-%$(EXT): %.o encoder.o utils.o
 	$(CXX) $^ -o $@
@@ -36,4 +37,4 @@ else
 	rm -f *.o data/*.enc data/*.dec
 endif
 
-.PHONY: all static dynamic clean
+.PHONY: all static dynamic dyn_leb128 clean

@@ -45,25 +45,25 @@ const uint8_t crc8_table[] = {
 
 /* 打印 CRC-8 表
 uint8_t calc_crc8(uint8_t val) {
-  uint8_t crc = val;
-  for (uint8_t i = 0; i < 8; ++i) {
-    if (crc & 0x80) {
-      crc = (crc << 1) ^ 0x07;
-    } else {
-      crc <<= 1;
+    uint8_t crc = val;
+    for (uint8_t i = 0; i < 8; ++i) {
+        if (crc & 0x80) {
+            crc = (crc << 1) ^ 0x07;
+        } else {
+            crc <<= 1;
+        }
     }
-  }
-  return crc;
+    return crc;
 }
 
 void print_crc8_table(void) {
-  for (int i = 0; i <= 0xFF; ++i) {
-    if (!(i % 16)) {
-      printf("\n");
+    for (int i = 0; i <= 0xFF; ++i) {
+        if (!(i % 16)) {
+            printf("\n");
+        }
+        printf("0x%.2X, ", calc_crc8(i & 0xFF));
     }
-    printf("0x%.2X, ", calc_crc8(i & 0xFF));
-  }
 }
 */
 
-#endif  // LTCODES_UTILS_H_
+#endif // LTCODES_UTILS_H_
